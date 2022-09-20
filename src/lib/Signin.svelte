@@ -20,6 +20,8 @@
  import { Entity } from "./entity";
  import { ServiceIdentity } from "./ServiceIdentity";
  import { myJID } from "./store";
+ import { locations } from "./store";
+ import { isGeolocStanza } from "./xmpp/xep-0080";
 
  let signin_done = false;
  let user_id: string;
@@ -78,12 +80,33 @@
      });
 
      conn.on("stanza", async (stanza) => {
-         let query = stanza.getChild("query")
-         if (query != undefined && stanza.attrs.type == "get" && query.attrs.xmlns == "http://jabber.org/protocol/disco#info") {
-             let info = entity.getQuery(jid(stanza.attrs.from), jid(stanza.attrs.to), stanza.attrs.id, query.attrs.node);
+         if (stanza.is("iq") && stanza.attrs.type == "get" && stanza.getChildByAttr("xmlns", "http://jabber.org/protocol/disco#info") !== undefined) {
+             let query_elem = stanza.getChildByAttr("xmlns", "http://jabber.org/protocol/disco#info");
+             let info = entity.getQuery(jid(stanza.attrs.from), jid(stanza.attrs.to), stanza.attrs.id, query_elem.attrs.node);
              console.debug(info);
              conn.send(info);
+         } else if (isGeolocStanza(stanza)) {
+
+             let elem = stanza.getChild("event")
+                              .getChildByAttr("node", "http://jabber.org/protocol/geoloc")
+                              .getChild("item")
+                              .getChildByAttr("xmlns", "http://jabber.org/protocol/geoloc");
+             if (elem.getChild("lat") !== undefined &&
+                 elem.getChild("lon") != undefined &&
+                 elem.getChild("lon") != undefined) {
+                 $locations.set(stanza.attrs.from, {
+                     lat: Number(elem.getChild("lat").text()),
+                     lng: Number(elem.getChild("lon").text()),
+                     acc: Number(elem.getChild("accuracy").text())
+                 });
+                 console.debug(elem);
+             }
          }
+         /*
+         if (stanza.getChild("query") != undefined && stanza.attrs.type == "get" && stanza.getChild("query").attrs.xmlns == "http://jabber.org/protocol/disco#info") {
+         } else if (stanza.getChild("message").getChild("event").getChild("items") !== undefined ) {
+         }
+         */
          console.debug(stanza);
      });
 
