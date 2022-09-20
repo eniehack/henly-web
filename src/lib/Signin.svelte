@@ -16,7 +16,7 @@ let entity = new Entity(id, ["http://jabber.org/protocol/caps", "http://jabber.o
 
  const signin = async () => {
      let addr = jid(user_id);
-     console.log(addr);
+     console.debug(addr);
 
      conn = client({
          service: `wss://${addr.domain}/xmpp-websocket`,
@@ -25,15 +25,15 @@ let entity = new Entity(id, ["http://jabber.org/protocol/caps", "http://jabber.o
          username: addr.local,
          password: password
      });
-     console.log(conn);
-     debug(conn, true);
+     console.debug(conn);
+     if (import.meta.env.DEV === true) debug(conn, true);
 
      conn.on("error", (err) => {
          console.error(err);
      });
 
      conn.on("online", async (address) => {
-         console.log("online as", address.toString());
+         console.debug("online as", address.toString());
          /*
          let disco_info = await conn.iqCaller.get(
              xml("query", "http://jabber.org/protocol/disco#info"),
@@ -64,14 +64,14 @@ let entity = new Entity(id, ["http://jabber.org/protocol/caps", "http://jabber.o
          let query = stanza.getChild("query")
          if (query != undefined && stanza.attrs.type == "get" && query.attrs.xmlns == "http://jabber.org/protocol/disco#info") {
              let info = entity.getQuery(jid(stanza.attrs.from), jid(stanza.attrs.to), stanza.attrs.id, query.attrs.node);
-             console.log(info);
+             console.debug(info);
              conn.send(info);
          }
-         console.log(stanza);
+         console.debug(stanza);
      });
 
      conn.on("offline", () => {
-         console.log("offline");
+         console.debug("offline");
          clearInterval(ping_interval);
      });
 
