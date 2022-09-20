@@ -26,14 +26,14 @@ let entity = new Entity(id, ["http://jabber.org/protocol/caps", "http://jabber.o
          password: password
      });
      console.log(conn);
-     debug(conn, true);
+     if (import.meta.env.DEV === true) debug(conn, true);
 
      conn.on("error", (err) => {
          console.error(err);
      });
 
      conn.on("online", async (address) => {
-         console.log("online as", address.toString());
+         if (import.meta.env.DEV === true) console.log("online as", address.toString());
          /*
          let disco_info = await conn.iqCaller.get(
              xml("query", "http://jabber.org/protocol/disco#info"),
@@ -64,14 +64,14 @@ let entity = new Entity(id, ["http://jabber.org/protocol/caps", "http://jabber.o
          let query = stanza.getChild("query")
          if (query != undefined && stanza.attrs.type == "get" && query.attrs.xmlns == "http://jabber.org/protocol/disco#info") {
              let info = entity.getQuery(jid(stanza.attrs.from), jid(stanza.attrs.to), stanza.attrs.id, query.attrs.node);
-             console.log(info);
+             if (import.meta.env.DEV === true) console.log(info);
              conn.send(info);
          }
          console.log(stanza);
      });
 
      conn.on("offline", () => {
-         console.log("offline");
+         if (import.meta.env.DEV === true) console.log("offline");
          clearInterval(ping_interval);
      });
 
