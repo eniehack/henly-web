@@ -17,8 +17,14 @@
 <script lang="ts">
  import L from "leaflet";
  import type { Map as LFMap } from "leaflet";
- import { onMount, onDestroy } from "svelte";
- import { myJID, locations, markers } from "./store";
+ import { onMount, onDestroy, getContext } from "svelte";
+ import { myJID, locations, markers, key } from "./store";
+ import type { Client } from "@xmpp/client";
+ import { Location } from "./xmpp/xep-0080";
+ import { v4 as uuidv4 } from "uuid";
+
+ const { getConn } = getContext(key);
+ const conn: Client = getConn();
 
  let map: LFMap;
  let coordWatchID: number;
@@ -40,6 +46,8 @@
          });
 
          coordWatchID = navigator.geolocation.watchPosition((pos) => {
+             let loc = new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+             conn.send(loc.toEventStanza($myJID, uuidv4()));
              locations.update((loc) => {
                  return loc.set($myJID.toString(), {lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy})
              });

@@ -19,9 +19,9 @@
  import debug from "@xmpp/debug";
  import { Entity } from "./entity";
  import { ServiceIdentity } from "./ServiceIdentity";
- import { myJID } from "./store";
- import { locations } from "./store";
+ import { myJID, locations, key } from "./store";
  import { isGeolocStanza } from "./xmpp/xep-0080";
+import { setContext } from "svelte";
 
  let signin_done = false;
  let user_id: string;
@@ -31,6 +31,10 @@
  let HENLY_NODE = "http://github.com/eniehack/henly-web";
  let id = new ServiceIdentity("Henly! Web Viewer (Beta) v0.1.0", "client", "ja", "web");
  let entity = new Entity(id, ["http://jabber.org/protocol/caps", "http://jabber.org/protocol/disco#items", "http://jabber.org/protocol/disco#info", "http://jabber.org/protocol/geoloc+notify", "http://jabber.org/protocol/geoloc"]);
+
+ setContext(key, {
+     getConn: () => conn,
+ });
 
  const signin = async () => {
      let addr = jid(user_id);

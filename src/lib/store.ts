@@ -14,3 +14,5 @@ export const locations: Writable<Locations> = writable(new Map<string, Location>
 
 type Markers = Map<string, Marker>;
 export const markers: Writable<Markers> = writable(new Map<string, Marker>());
+
+export const key = Symbol();
