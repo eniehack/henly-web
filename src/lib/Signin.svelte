@@ -1,9 +1,27 @@
+{#if !signin_done}
+    <div>
+        <label for="jid">JID: </label>
+        <input type="text" bind:value={user_id} placeholder="JID" autocomplete="username" required />
+    </div>
+    <div>
+        <label for="password">Password: </label>
+        <input type="password" bind:value={password} placeholder="password" autocomplete="current-password" required />
+    </div>
+    <button id="signin" on:click={signin}>sign in</button>
+{:else}
+    <Map />
+{/if}
+
 <script lang="ts">
+ import Map from "./Map.svelte";
  import { client, xml, type Client } from "@xmpp/client";
  import { jid } from "@xmpp/jid";
  import debug from "@xmpp/debug";
  import { Entity } from "./entity";
-import { ServiceIdentity } from "./ServiceIdentity";
+ import { ServiceIdentity } from "./ServiceIdentity";
+ import { myJID, locations, key } from "./store";
+ import { isGeolocStanza } from "./xmpp/xep-0080";
+import { setContext } from "svelte";
 
  let signin_done = false;
  let user_id: string;
@@ -11,8 +29,12 @@ import { ServiceIdentity } from "./ServiceIdentity";
  let conn: Client;
  let ping_interval: NodeJS.Timer;
  let HENLY_NODE = "http://github.com/eniehack/henly-web";
-let id = new ServiceIdentity("Henly! Web Viewer (Beta) v0.1.0", "client", "ja", "web");
-let entity = new Entity(id, ["http://jabber.org/protocol/caps", "http://jabber.org/protocol/disco#items", "http://jabber.org/protocol/disco#info", "http://jabber.org/protocol/geoloc+notify", "http://jabber.org/protocol/geoloc"]);
+ let id = new ServiceIdentity("Henly! Web Viewer (Beta) v0.1.0", "client", "ja", "web");
+ let entity = new Entity(id, ["http://jabber.org/protocol/caps", "http://jabber.org/protocol/disco#items", "http://jabber.org/protocol/disco#info", "http://jabber.org/protocol/geoloc+notify", "http://jabber.org/protocol/geoloc"]);
+
+ setContext(key, {
+     getConn: () => conn,
+ });
 
  const signin = async () => {
      let addr = jid(user_id);
@@ -34,10 +56,11 @@ let entity = new Entity(id, ["http://jabber.org/protocol/caps", "http://jabber.o
 
      conn.on("online", async (address) => {
          console.debug("online as", address.toString());
+         myJID.set(address);
          /*
          let disco_info = await conn.iqCaller.get(
              xml("query", "http://jabber.org/protocol/disco#info"),
-             addr.bare().toString()
+             myJID.bare().toString()
          );
 
          console.log(disco_info);
@@ -46,7 +69,7 @@ let entity = new Entity(id, ["http://jabber.org/protocol/caps", "http://jabber.o
          let ver = entity.ver();
          conn.send(
              xml("presence",
-                 {from: addr.toString()},
+                 {from: $myJID.toString()},
                  xml("c", {xmlns: "http://jabber.org/protocol/caps", hash: "sha-1", node: HENLY_NODE, ver: ver})
              )
          );
@@ -54,19 +77,40 @@ let entity = new Entity(id, ["http://jabber.org/protocol/caps", "http://jabber.o
          ping_interval = setInterval(() => {
              conn.iqCaller.get(
                  xml("ping", "urn:xmpp:ping"),
-                 addr.domain
+                 $myJID.domain
              );
          }, 1000 * 60);
          signin_done = true;
      });
 
      conn.on("stanza", async (stanza) => {
-         let query = stanza.getChild("query")
-         if (query != undefined && stanza.attrs.type == "get" && query.attrs.xmlns == "http://jabber.org/protocol/disco#info") {
-             let info = entity.getQuery(jid(stanza.attrs.from), jid(stanza.attrs.to), stanza.attrs.id, query.attrs.node);
+         if (stanza.is("iq") && stanza.attrs.type == "get" && stanza.getChildByAttr("xmlns", "http://jabber.org/protocol/disco#info") !== undefined) {
+             let query_elem = stanza.getChildByAttr("xmlns", "http://jabber.org/protocol/disco#info");
+             let info = entity.getQuery(jid(stanza.attrs.from), jid(stanza.attrs.to), stanza.attrs.id, query_elem.attrs.node);
              console.debug(info);
              conn.send(info);
+         } else if (isGeolocStanza(stanza)) {
+
+             let elem = stanza.getChild("event")
+                              .getChildByAttr("node", "http://jabber.org/protocol/geoloc")
+                              .getChild("item")
+                              .getChildByAttr("xmlns", "http://jabber.org/protocol/geoloc");
+             if (elem.getChild("lat") !== undefined &&
+                 elem.getChild("lon") != undefined &&
+                 elem.getChild("lon") != undefined) {
+                 $locations.set(stanza.attrs.from, {
+                     lat: Number(elem.getChild("lat").text()),
+                     lng: Number(elem.getChild("lon").text()),
+                     acc: Number(elem.getChild("accuracy").text())
+                 });
+                 console.debug(elem);
+             }
          }
+         /*
+         if (stanza.getChild("query") != undefined && stanza.attrs.type == "get" && stanza.getChild("query").attrs.xmlns == "http://jabber.org/protocol/disco#info") {
+         } else if (stanza.getChild("message").getChild("event").getChild("items") !== undefined ) {
+         }
+         */
          console.debug(stanza);
      });
 
@@ -79,15 +123,3 @@ let entity = new Entity(id, ["http://jabber.org/protocol/caps", "http://jabber.o
  }
 
 </script>
-
-{#if !signin_done}
-    <div>
-        <label for="jid">JID: </label>
-        <input type="text" bind:value={user_id} placeholder="JID" autocomplete="username" required />
-    </div>
-    <div>
-        <label for="password">Password: </label>
-        <input type="password" bind:value={password} placeholder="password" autocomplete="current-password" required />
-    </div>
-    <button id="signin" on:click={signin}>sign in</button>
-{/if}
