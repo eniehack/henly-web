@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns="http://usefulinc.com/ns/doap#"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns"
+         xmlns:dc="http://purl.org/dc/elements/1.1/"
+         xmlns:dcterms="http://dublincore.org/specifications/dublin-core/dcmi-terms/2020-01-20/"
+         xmlns:xmpp="https://linkmauve.fr/ns/xmpp-doap#"
+         xmlns:schema="https://schema.org/"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/">
+    <dc:creator>
+      <foaf:Person rdf:resource="https://eniehack.net/~eniehack" />
+    </dc:creator>
+    <dc:format>application/rdf+xml</dc:format>
+    <dc:rights>copyright &#169; 2020- Nakaya.</dc:rights>
+    <dc:language rdf:datatype="RFC5646">en</dc:language>
+    <dcterms:created rdf:datatype="W3CDTF">2022-09-21</dcterms:created>
+  <Project>
+    <name>Henly! Web Viewer</name>
+    <shortname>henly-web</shortname>
+    <description xml:lang="en">
+      Henly Web Viewer is Zenly-alternative implementation, built by XMPP's Personal Eventing Protocol
+    </description>
+    <homepage rdf:resource="https://github.com/eniehack/henly-web"/>
+    <bug-database rdf:resource="https://github.com/eniehack/henly-web/issues"/>
+    <programming-language>TypeScript</programming-language>
+    <programming-language>Svelte</programming-language>
+    <programming-language>CSS</programming-language>
+    <programming-language>HTML</programming-language>
+    <maintainer>
+      <foaf:Person>
+        <foaf:name>Nakaya</foaf:name>
+        <foaf:homepage rdf:resource="https://eniehack.net/~eniehack"/>
+      </foaf:Person>
+    </maintainer>
+    <repository>
+      <GitRepository>
+        <browse rdf:resource="https://github.com/eniehack/henly-web"/>
+        <location rdf:resource="https://github.com/eniehack/henly-web.git"/>
+      </GitRepository>
+    </repository>
+  </Project>
+  <category rdf:resource="https://linkmauve.fr/ns/xmpp-doap#category-client" />
+  <category rdf:resource="http://api.gnome.org/doap-extensions#apps" />
+  <implements>
+    <xmpp:SupportedXep>
+      <xmpp:xep rdf:resource="https://xmpp.org/extensions/xep-0030.html" />
+      <xmpp:status>partial</xmpp:status>
+    </xmpp:SupportedXep>
+  </implements>
+  <implements>
+    <xmpp:SupportedXep>
+      <xmpp:xep rdf:resource="https://xmpp.org/extensions/xep-0080.html" />
+      <xmpp:status>partial</xmpp:status>
+    </xmpp:SupportedXep>
+  </implements>
+  <implements>
+    <xmpp:SupportedXep>
+      <xmpp:xep rdf:resource="https://xmpp.org/extensions/xep-0115.html" />
+      <xmpp:status>partial</xmpp:status>
+    </xmpp:SupportedXep>
+  </implements>
+  <implements>
+    <xmpp:SupportedXep>
+      <xmpp:xep rdf:resource="https://xmpp.org/extensions/xep-0163.html" />
+      <xmpp:status>partial</xmpp:status>
+    </xmpp:SupportedXep>
+  </implements>
+</rdf:RDF>
