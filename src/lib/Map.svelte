@@ -7,10 +7,10 @@
 <div id="map"></div>
 
 <style>
- #map {
-     width: 750px;
-     height: 750px;
- }
+#map {
+  width: 100%;
+  height: 100vw;
+}
 </style>
 
 
