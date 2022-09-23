@@ -61,6 +61,7 @@
                  $markers.get(k).setLatLng([v.lat, v.lng]);
              } else {
                  let marker = L.marker([v.lat, v.lng])
+                               .bindPopup(k)
                                .addTo(map);
                  $markers.set(k, marker);
              }
