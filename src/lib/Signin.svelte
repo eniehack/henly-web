@@ -22,6 +22,7 @@
  import { myJID, locations, key } from "./store";
  import { isGeolocStanza } from "./xmpp/xep-0080";
 import { setContext } from "svelte";
+ import { generateResourceRandomPart } from "./util";
 
  let signin_done = false;
  let user_id: string;
@@ -40,10 +41,20 @@ import { setContext } from "svelte";
      let addr = jid(user_id);
      console.debug(addr);
 
+     let resource: string;
+
+     let localStorage_jid = localStorage.getItem("jid")
+     if (localStorage_jid === null) {
+         resource = "henly-web." + generateResourceRandomPart();
+         localStorage.setItem("jid", resource);
+     } else {
+         resource = localStorage_jid;
+     }
+
      conn = client({
          service: `wss://${addr.domain}/xmpp-websocket`,
          domain: addr.domain,
-         resource: "henly-web." + (new Date()).getTime().toString(),
+         resource: resource,
          username: addr.local,
          password: password
      });

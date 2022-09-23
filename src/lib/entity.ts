@@ -2,20 +2,8 @@ import xml from "@xmpp/xml";
 import type { Element } from "@xmpp/xml";
 import type { JID } from "@xmpp/jid";
 import type { ServiceIdentity } from "./ServiceIdentity";
-//import { createHash, type Hash } from "crypto";
 import sha1 from "crypto-js/sha1";
 import Base64 from "crypto-js/enc-base64";
-
-const bufferToBase64Str = (buf: ArrayBuffer) : string => {
-    // ref: https://memo.appri.me/programming/arraybuffer-to-blob-etc#ArrayBuffer__Base64
-    let binary = "";
-    const bytes = new Uint8Array(buf);
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary)
-}
 
 export class Entity {
     //private hash: Hash;
