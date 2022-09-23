@@ -7,12 +7,11 @@
 <div id="map"></div>
 
 <style>
-#map {
-  width: 100%;
-  height: 100vw;
-}
+ #map {
+     width: 85vw;
+     height: 85vh;
+ }
 </style>
-
 
 <script lang="ts">
  import L from "leaflet";

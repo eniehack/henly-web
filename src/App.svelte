@@ -3,9 +3,5 @@
 </script>
 
 <main>
-
-  <div class="card">
-    <Signin />
-  </div>
-
+  <Signin />
 </main>
