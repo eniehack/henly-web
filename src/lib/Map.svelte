@@ -8,11 +8,10 @@
 
 <style>
  #map {
-     width: 750px;
-     height: 750px;
+     width: 85vw;
+     height: 85vh;
  }
 </style>
-
 
 <script lang="ts">
  import L from "leaflet";
