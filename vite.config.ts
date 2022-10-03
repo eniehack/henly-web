@@ -12,6 +12,8 @@ export default defineConfig({
 		alias: {
 			"@": fileURLToPath(new URL("./src", import.meta.url)),
 			stream: "rollup-plugin-node-polyfills/polyfills/stream",
+			_stream_readable: 'rollup-plugin-node-polyfills/polyfills/readable-stream/readable',
+            _stream_writable: 'rollup-plugin-node-polyfills/polyfills/readable-stream/writable',
 			buffer: 'rollup-plugin-node-polyfills/polyfills/buffer-es6',
 		},
 	},
