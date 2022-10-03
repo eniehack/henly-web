@@ -12,6 +12,7 @@ export default defineConfig({
 		alias: {
 			"@": fileURLToPath(new URL("./src", import.meta.url)),
 			stream: "rollup-plugin-node-polyfills/polyfills/stream",
+			buffer: 'rollup-plugin-node-polyfills/polyfills/buffer-es6',
 		},
 	},
 	optimizeDeps: {
@@ -29,12 +30,10 @@ export default defineConfig({
 	},
 	build: {
 		target: "esnext",
-		/*
 		rollupOptions: {
 			plugins: [
 				rollupNodePolyFill()
 			]
 		}
-		 */
 	}
 });
