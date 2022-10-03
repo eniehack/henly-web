@@ -21,8 +21,9 @@
  import { ServiceIdentity } from "./ServiceIdentity";
  import { myJID, locations, key } from "./store";
  import { isGeolocStanza } from "./xmpp/xep-0080";
-import { setContext } from "svelte";
+ import { setContext } from "svelte";
  import { generateResourceRandomPart } from "./util";
+  import { HostMeta } from "./xmpp/xep-0156";
 
  let signin_done = false;
  let user_id: string;
@@ -51,8 +52,16 @@ import { setContext } from "svelte";
          resource = localStorage_jid;
      }
 
+     let hostmeta = await fetch(`https://${addr.domain}/.well-known/host-meta`, {
+       method: "GET",
+       redirect: "follow"
+     })
+         .then(resp => resp.text())
+         .then(body => new HostMeta(body))
+         .then(meta => meta.getWebSocketEndpoint());
+
      conn = client({
-         service: `wss://${addr.domain}/xmpp-websocket`,
+         service: hostmeta,
          domain: addr.domain,
          resource: resource,
          username: addr.local,
@@ -68,14 +77,6 @@ import { setContext } from "svelte";
      conn.on("online", async (address) => {
          console.debug("online as", address.toString());
          myJID.set(address);
-         /*
-         let disco_info = await conn.iqCaller.get(
-             xml("query", "http://jabber.org/protocol/disco#info"),
-             myJID.bare().toString()
-         );
-
-         console.log(disco_info);
-         */
 
          let ver = entity.ver();
          conn.send(
@@ -101,7 +102,6 @@ import { setContext } from "svelte";
              console.debug(info);
              conn.send(info);
          } else if (isGeolocStanza(stanza)) {
-
              let elem = stanza.getChild("event")
                               .getChildByAttr("node", "http://jabber.org/protocol/geoloc")
                               .getChild("item")
@@ -114,14 +114,8 @@ import { setContext } from "svelte";
                      lng: Number(elem.getChild("lon").text()),
                      acc: Number(elem.getChild("accuracy").text())
                  });
-                 console.debug(elem);
              }
          }
-         /*
-         if (stanza.getChild("query") != undefined && stanza.attrs.type == "get" && stanza.getChild("query").attrs.xmlns == "http://jabber.org/protocol/disco#info") {
-         } else if (stanza.getChild("message").getChild("event").getChild("items") !== undefined ) {
-         }
-         */
          console.debug(stanza);
      });
 
