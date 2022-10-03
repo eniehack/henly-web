@@ -11,6 +11,7 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			"@": fileURLToPath(new URL("./src", import.meta.url)),
+			util: 'rollup-plugin-node-polyfills/polyfills/util',
 			stream: "rollup-plugin-node-polyfills/polyfills/stream",
             _stream_duplex:
                 'rollup-plugin-node-polyfills/polyfills/readable-stream/duplex',
