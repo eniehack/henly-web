@@ -24,6 +24,7 @@ export default defineConfig({
             _stream_transform:
                 'rollup-plugin-node-polyfills/polyfills/readable-stream/transform',
 			buffer: 'rollup-plugin-node-polyfills/polyfills/buffer-es6',
+			process: 'rollup-plugin-node-polyfills/polyfills/process-es6'
 		},
 	},
 	optimizeDeps: {
