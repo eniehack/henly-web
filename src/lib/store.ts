@@ -12,7 +12,7 @@ type Location = {
 type Locations = Map<string, Location>;
 export const locations: Writable<Locations> = writable(new Map<string, Location>());
 
-export const mylocations: Writable<Locations> = writable(Location);
+export const mylocation: Writable<Locations> = writable(Location);
 
 type Markers = Map<string, Marker>;
 export const markers: Writable<Markers> = writable(new Map<string, Marker>());

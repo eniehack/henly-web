@@ -17,7 +17,7 @@
  import L from "leaflet";
  import type { Map as LFMap } from "leaflet";
  import { onMount, onDestroy, getContext, type Unsubscriber } from "svelte";
- import { myJID, mylocations, locations, markers, key } from "./store";
+ import { myJID, mylocation, locations, markers, key } from "./store";
  import type { Client } from "@xmpp/client";
  import { Location } from "./xmpp/xep-0080";
  import { v4 as uuidv4 } from "uuid";
@@ -39,26 +39,24 @@
 
      if ("geolocation" in navigator) {
          navigator.geolocation.getCurrentPosition((pos) => {
-             locations.update((loc) => {
-                 return loc.set($myJID.toString(), {lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy})
-             });
+             mylocation.set({lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy});
          }, (err) => {
              console.log(err.message);
          });
 
          coordWatchID = navigator.geolocation.watchPosition((pos) => {
-             mylocations.update((loc) => {
-               return loc.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy))
-             });
+             mylocation.set({lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy});
          });
      }
 
-    mylocationUnsubscriber = mylocation.subscribe((loc) => {
+    mylocationUnsubscriber = mylocation.subscribe((pos) => {
+      let loc = new Location(pos.lat, pos.lng, pos.acc)
+      console.log(loc)
       conn.send(loc.toEventStanza($myJID, datetime(), uuidv4()));
     })
 
      locationUnsubscriber = locations.subscribe((pos) => {
-       let mypos = pos.get($myJID.bare().toString());
+       let mypos = $mylocation;
          if (typeof mypos !== "undefined") map.flyTo([mypos.lat, mypos.lng]);
          pos.forEach((v,k) => {
            if ($markers.get(k) == undefined) {
@@ -77,8 +75,8 @@
      if (typeof coordWatchID === "number") {
          navigator.geolocation.clearWatch(coordWatchID);
      }
-   mylocationUnsubscriber();
-   locationUnsubscriber();
+   mylocationUnsubscriber;
+   locationUnsubscriber;
  });
 
 </script>
