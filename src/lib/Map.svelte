@@ -16,7 +16,7 @@
 <script lang="ts">
  import L from "leaflet";
  import type { Map as LFMap } from "leaflet";
- import { onMount, onDestroy, getContext } from "svelte";
+ import { onMount, onDestroy, getContext, type Unsubscriber } from "svelte";
  import { myJID, locations, markers, key } from "./store";
  import type { Client } from "@xmpp/client";
  import { Location } from "./xmpp/xep-0080";
@@ -27,6 +27,7 @@
 
  let map: LFMap;
  let coordWatchID: number;
+  let locationUnsubscriber: Unsubscriber;
  //let geolocationErr: GeolocationPositionError;
  onMount(() => {
      map = L.map("map").setView([0, 0], 13);
@@ -53,18 +54,20 @@
          });
      }
 
-     locations.subscribe((pos) => {
-         let mypos = pos.get($myJID.toString());
+     locationUnsubscriber = locations.subscribe((pos) => {
+       let mypos = pos.get($myJID.bare().toString());
          if (typeof mypos !== "undefined") map.flyTo([mypos.lat, mypos.lng]);
          pos.forEach((v,k) => {
-             if (typeof $markers.get(k) != "undefined") {
+           if (k === $myJID.bare().toString()) {
+             return;
+           } else if ($markers.get(k) == undefined) {
+               let marker = L.marker([v.lat, v.lng])
+                             .bindPopup(k)
+                             .addTo(map);
+               $markers.set(k, marker);
+           } else {
                  $markers.get(k).setLatLng([v.lat, v.lng]);
-             } else {
-                 let marker = L.marker([v.lat, v.lng])
-                               .bindPopup(k)
-                               .addTo(map);
-                 $markers.set(k, marker);
-             }
+           }
          });
      });
  });
@@ -73,6 +76,7 @@
      if (typeof coordWatchID === "number") {
          navigator.geolocation.clearWatch(coordWatchID);
      }
+   locationUnsubscriber();
  });
 
 </script>
