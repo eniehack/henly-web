@@ -17,7 +17,7 @@
  import L from "leaflet";
  import type { Map as LFMap } from "leaflet";
  import { onMount, onDestroy, getContext, type Unsubscriber } from "svelte";
- import { myJID, locations, markers, key } from "./store";
+ import { myJID, mylocations, locations, markers, key } from "./store";
  import type { Client } from "@xmpp/client";
  import { Location } from "./xmpp/xep-0080";
  import { v4 as uuidv4 } from "uuid";
@@ -28,6 +28,7 @@
  let map: LFMap;
  let coordWatchID: number;
   let locationUnsubscriber: Unsubscriber;
+  let mylocationUnsubscriber: Unsubscriber;
  //let geolocationErr: GeolocationPositionError;
  onMount(() => {
      map = L.map("map").setView([0, 0], 13);
@@ -46,21 +47,21 @@
          });
 
          coordWatchID = navigator.geolocation.watchPosition((pos) => {
-             let loc = new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
-             conn.send(loc.toEventStanza($myJID, uuidv4()));
-             locations.update((loc) => {
-                 return loc.set($myJID.toString(), {lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy})
+             mylocations.update((loc) => {
+               return loc.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy))
              });
          });
      }
+
+    mylocationUnsubscriber = mylocation.subscribe((loc) => {
+      conn.send(loc.toEventStanza($myJID, datetime(), uuidv4()));
+    })
 
      locationUnsubscriber = locations.subscribe((pos) => {
        let mypos = pos.get($myJID.bare().toString());
          if (typeof mypos !== "undefined") map.flyTo([mypos.lat, mypos.lng]);
          pos.forEach((v,k) => {
-           if (k === $myJID.bare().toString()) {
-             return;
-           } else if ($markers.get(k) == undefined) {
+           if ($markers.get(k) == undefined) {
                let marker = L.marker([v.lat, v.lng])
                              .bindPopup(k)
                              .addTo(map);
@@ -76,6 +77,7 @@
      if (typeof coordWatchID === "number") {
          navigator.geolocation.clearWatch(coordWatchID);
      }
+   mylocationUnsubscriber();
    locationUnsubscriber();
  });
 
