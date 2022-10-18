@@ -58,7 +58,7 @@
 
      locationUnsubscriber = locations.subscribe((pos) => {
        let mypos = $mylocation;
-         if (typeof mypos !== "undefined") map.flyTo([mypos.lat, mypos.lng]);
+         if (mypos.lat !== undefined && mypos.lng !== undefined) map.flyTo([mypos.lat, mypos.lng]);
          pos.forEach((v,k) => {
            if ($markers.get(k) == undefined) {
                let marker = L.marker([v.lat, v.lng])
