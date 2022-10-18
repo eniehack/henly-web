@@ -16,9 +16,9 @@ export const isGeolocStanza = (stanza: Element): boolean => {
 
 export class Location {
     constructor(
-        public lat: number,
-        public lng: number,
-        public acc: number
+        public lat?: number,
+        public lng?: number,
+        public acc?: number
     ) {
 
     }
