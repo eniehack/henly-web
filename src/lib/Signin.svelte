@@ -107,10 +107,8 @@
                               .getChildByAttr("node", "http://jabber.org/protocol/geoloc")
                               .getChild("item")
                               .getChildByAttr("xmlns", "http://jabber.org/protocol/geoloc");
-             console.debug(`geoloc elem: ${elem}`);
              let loc = new Location();
              if (elem.getChild("lat") !== undefined) {
-                 console.debug(elem.getChild("lat").text())
                 loc.lat = Number(elem.getChild("lat").text());
              }
              if (elem.getChild("lon") !== undefined) {
@@ -119,16 +117,13 @@
              if (elem.getChild("accuracy") !== undefined) {
                 loc.acc = Number(elem.getChild("accuracy").text());
              }
-             /*
              if (elem.getChild("timestamp") !== undefined) {
-                obj["timestamp"] = elem.getChild("timestamp").text();
+                loc.timestamp = elem.getChild("timestamp").text();
              }
-             */
-             //console.debug(`geoloc: ${obj.lat},${obj.lng},${obj.accuracy},${obj.timestamp}`);
              locations.update((m) => {
-               console.log(m)
-                 m.set(stanza.attrs.from, loc);
-                 return m;
+                //console.log(m)
+                m.set(stanza.attrs.from, loc);
+                return m;
              });
          }
          console.debug(stanza);

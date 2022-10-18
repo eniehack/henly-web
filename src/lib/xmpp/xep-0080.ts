@@ -18,12 +18,13 @@ export class Location {
     constructor(
         public lat?: number,
         public lng?: number,
-        public acc?: number
+        public acc?: number,
+        public timestamp?: string
     ) {
 
     }
 
-    toEventStanza(from: JID, time: string, id: string): Element {
+    toEventStanza(from: JID, id: string): Element {
         return xml("iq", {type: "set", from: from.toString(), id: id},
                    xml("pubsub", "http://jabber.org/protocol/pubsub",
                        xml("publish", {node: "http://jabber.org/protocol/geoloc"},
@@ -32,7 +33,7 @@ export class Location {
                                    xml("accuracy", {}, String(this.acc)),
                                    xml("lat", {}, String(this.lat)),
                                    xml("lon", {}, String(this.lng)),
-                                   xml("timestamp", {}, time),
+                                   xml("timestamp", {}, this.timestamp),
                                   )
                               )
                           )

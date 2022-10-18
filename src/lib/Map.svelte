@@ -42,20 +42,20 @@
 
      if ("geolocation" in navigator) {
          navigator.geolocation.getCurrentPosition((pos) => {
-             mylocation.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy));
+             mylocation.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, datetime()));
          }, (err) => {
              console.log(err.message);
          });
 
          coordWatchID = navigator.geolocation.watchPosition((pos) => {
-            mylocation.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy));
+            mylocation.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, datetime()));
          });
      }
 
     mylocationXMPPUnsubscriber = mylocation.subscribe((pos) => {
       if (pos.lat === undefined || pos.lng === undefined) return;
-      console.debug(pos)
-      conn.send(pos.toEventStanza($myJID, datetime(), uuidv4()));
+      //console.debug(pos)
+      conn.send(pos.toEventStanza($myJID, uuidv4()));
     })
 
     mylocationMapUnsubscriber = mylocation.subscribe((pos) => {
@@ -63,7 +63,6 @@
     });
 
      locationUnsubscriber = locations.subscribe((pos) => {
-       console.debug(`location subscribe: ${pos}`)
         pos.forEach((v,k) => {
             if ($markers.get(k) == undefined) {
                 let marker = L.marker([v.lat, v.lng])
