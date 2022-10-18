@@ -23,7 +23,7 @@ export class Location {
 
     }
 
-    toEventStanza(from: JID, id: string): Element {
+    toEventStanza(from: JID, time: string, id: string): Element {
         return xml("iq", {type: "set", from: from.toString(), id: id},
                    xml("pubsub", "http://jabber.org/protocol/pubsub",
                        xml("publish", {node: "http://jabber.org/protocol/geoloc"},
@@ -31,7 +31,8 @@ export class Location {
                                xml("geoloc", {xmlns: "http://jabber.org/protocol/geoloc"},
                                    xml("accuracy", {}, String(this.acc)),
                                    xml("lat", {}, String(this.lat)),
-                                   xml("lon", {}, String(this.lng))
+                                   xml("lon", {}, String(this.lng)),
+                                   xml("timestamp", {}, time),
                                   )
                               )
                           )

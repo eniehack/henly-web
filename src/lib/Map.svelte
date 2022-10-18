@@ -19,6 +19,7 @@
  import { onMount, onDestroy, getContext, type Unsubscriber } from "svelte";
  import { myJID, mylocation, locations, markers, key } from "./store";
  import type { Client } from "@xmpp/client";
+ import { datetime } from "@xmpp/time";
  import { Location } from "./xmpp/xep-0080";
  import { v4 as uuidv4 } from "uuid";
 
