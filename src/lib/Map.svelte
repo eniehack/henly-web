@@ -17,8 +17,10 @@
  import L from "leaflet";
  import type { Map as LFMap } from "leaflet";
  import { onMount, onDestroy, getContext } from "svelte";
- import { myJID, locations, markers, key } from "./store";
+ import type { Unsubscriber } from "svelte/store";
+ import { myJID, mylocation, locations, markers, key } from "./store";
  import type { Client } from "@xmpp/client";
+ import { datetime } from "@xmpp/time";
  import { Location } from "./xmpp/xep-0080";
  import { v4 as uuidv4 } from "uuid";
 
@@ -27,6 +29,9 @@
 
  let map: LFMap;
  let coordWatchID: number;
+  let locationUnsubscriber: Unsubscriber;
+  let mylocationMapUnsubscriber: Unsubscriber;
+  let mylocationXMPPUnsubscriber: Unsubscriber;
  //let geolocationErr: GeolocationPositionError;
  onMount(() => {
      map = L.map("map").setView([0, 0], 13);
@@ -37,35 +42,37 @@
 
      if ("geolocation" in navigator) {
          navigator.geolocation.getCurrentPosition((pos) => {
-             locations.update((loc) => {
-                 return loc.set($myJID.toString(), {lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy})
-             });
+             mylocation.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, datetime()));
          }, (err) => {
              console.log(err.message);
          });
 
          coordWatchID = navigator.geolocation.watchPosition((pos) => {
-             let loc = new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
-             conn.send(loc.toEventStanza($myJID, uuidv4()));
-             locations.update((loc) => {
-                 return loc.set($myJID.toString(), {lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy})
-             });
+            mylocation.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, datetime()));
          });
      }
 
-     locations.subscribe((pos) => {
-         let mypos = pos.get($myJID.toString());
-         if (typeof mypos !== "undefined") map.flyTo([mypos.lat, mypos.lng]);
-         pos.forEach((v,k) => {
-             if (typeof $markers.get(k) != "undefined") {
-                 $markers.get(k).setLatLng([v.lat, v.lng]);
-             } else {
-                 let marker = L.marker([v.lat, v.lng])
-                               .bindPopup(k)
-                               .addTo(map);
-                 $markers.set(k, marker);
-             }
-         });
+    mylocationXMPPUnsubscriber = mylocation.subscribe((pos) => {
+      if (pos.lat === undefined || pos.lng === undefined) return;
+      //console.debug(pos)
+      conn.send(pos.toEventStanza($myJID, uuidv4()));
+    })
+
+    mylocationMapUnsubscriber = mylocation.subscribe((pos) => {
+      if (pos.lat !== undefined || pos.lng !== undefined) map.flyTo([pos.lat, pos.lng]);
+    });
+
+     locationUnsubscriber = locations.subscribe((pos) => {
+        pos.forEach((v,k) => {
+            if ($markers.get(k) == undefined) {
+                let marker = L.marker([v.lat, v.lng])
+                              .bindPopup(k)
+                              .addTo(map);
+                $markers.set(k, marker);
+            } else {
+                $markers.get(k).setLatLng([v.lat, v.lng]);
+            }
+        });
      });
  });
 
@@ -73,6 +80,9 @@
      if (typeof coordWatchID === "number") {
          navigator.geolocation.clearWatch(coordWatchID);
      }
+   mylocationXMPPUnsubscriber;
+   mylocationMapUnsubscriber;
+   locationUnsubscriber;
  });
 
 </script>

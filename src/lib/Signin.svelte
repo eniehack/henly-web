@@ -20,7 +20,7 @@
  import { Entity } from "./entity";
  import { ServiceIdentity } from "./ServiceIdentity";
  import { myJID, locations, key } from "./store";
- import { isGeolocStanza } from "./xmpp/xep-0080";
+ import { isGeolocStanza, Location } from "./xmpp/xep-0080";
  import { setContext } from "svelte";
  import { generateResourceRandomPart } from "./util";
   import { HostMeta } from "./xmpp/xep-0156";
@@ -35,7 +35,7 @@
  let entity = new Entity(id, ["http://jabber.org/protocol/caps", "http://jabber.org/protocol/disco#items", "http://jabber.org/protocol/disco#info", "http://jabber.org/protocol/geoloc+notify", "http://jabber.org/protocol/geoloc"]);
 
  setContext(key, {
-     getConn: () => conn,
+    getConn: () => conn,
  });
 
  const signin = async () => {
@@ -76,15 +76,16 @@
 
      conn.on("online", async (address) => {
          console.debug("online as", address.toString());
-         myJID.set(address);
 
          let ver = entity.ver();
          conn.send(
              xml("presence",
-                 {from: $myJID.toString()},
+                 {from: address.toString()},
                  xml("c", {xmlns: "http://jabber.org/protocol/caps", hash: "sha-1", node: HENLY_NODE, ver: ver})
              )
          );
+
+         myJID.set(address);
 
          ping_interval = setInterval(() => {
              conn.iqCaller.get(
@@ -106,15 +107,24 @@
                               .getChildByAttr("node", "http://jabber.org/protocol/geoloc")
                               .getChild("item")
                               .getChildByAttr("xmlns", "http://jabber.org/protocol/geoloc");
-             if (elem.getChild("lat") !== undefined &&
-                 elem.getChild("lon") != undefined &&
-                 elem.getChild("lon") != undefined) {
-                 $locations.set(stanza.attrs.from, {
-                     lat: Number(elem.getChild("lat").text()),
-                     lng: Number(elem.getChild("lon").text()),
-                     acc: Number(elem.getChild("accuracy").text())
-                 });
+             let loc = new Location();
+             if (elem.getChild("lat") !== undefined) {
+                loc.lat = Number(elem.getChild("lat").text());
              }
+             if (elem.getChild("lon") !== undefined) {
+                loc.lng = Number(elem.getChild("lon").text());
+             }
+             if (elem.getChild("accuracy") !== undefined) {
+                loc.acc = Number(elem.getChild("accuracy").text());
+             }
+             if (elem.getChild("timestamp") !== undefined) {
+                loc.timestamp = elem.getChild("timestamp").text();
+             }
+             locations.update((m) => {
+                //console.log(m)
+                m.set(stanza.attrs.from, loc);
+                return m;
+             });
          }
          console.debug(stanza);
      });
