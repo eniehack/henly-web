@@ -29,7 +29,8 @@
 
  let map: LFMap;
  let coordWatchID: number;
-  let locationUnsubscriber: Unsubscriber;
+  let locationsCacheUnsubscriber: Unsubscriber;
+  let locationsMarkerUnsubscriber: Unsubscriber;
   let mylocationMapUnsubscriber: Unsubscriber;
   let mylocationXMPPUnsubscriber: Unsubscriber;
  //let geolocationErr: GeolocationPositionError;
@@ -42,29 +43,35 @@
 
      if ("geolocation" in navigator) {
          navigator.geolocation.getCurrentPosition((pos) => {
-             mylocation.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, datetime()));
+           if (pos.coords.latitude !== undefined &&
+               pos.coords.longitude !== undefined &&
+               pos.coords.accuracy !== undefined) mylocation.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, datetime()));
          }, (err) => {
              console.log(err.message);
          });
 
          coordWatchID = navigator.geolocation.watchPosition((pos) => {
-            mylocation.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, datetime()));
+           if (pos.coords.latitude !== undefined &&
+               pos.coords.longitude !== undefined &&
+               pos.coords.accuracy !== undefined) mylocation.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, datetime()));
          });
      }
 
     mylocationXMPPUnsubscriber = mylocation.subscribe((pos) => {
-      if (pos.lat === undefined || pos.lng === undefined) return;
+      if (pos.lat !== undefined || pos.lng !== undefined) conn.send(pos.toEventStanza($myJID, uuidv4()));
       //console.debug(pos)
-      conn.send(pos.toEventStanza($myJID, uuidv4()));
     })
 
     mylocationMapUnsubscriber = mylocation.subscribe((pos) => {
       if (pos.lat !== undefined || pos.lng !== undefined) map.flyTo([pos.lat, pos.lng]);
     });
 
-     locationUnsubscriber = locations.subscribe((pos) => {
+     locationsMarkerUnsubscriber = locations.subscribe((pos) => {
         pos.forEach((v,k) => {
-            if ($markers.get(k) == undefined) {
+            if (v.lat === undefined &&
+               v.lng === undefined) return;
+
+            if ($markers.get(k) === undefined) {
                 let marker = L.marker([v.lat, v.lng])
                               .bindPopup(k)
                               .addTo(map);
@@ -72,6 +79,24 @@
             } else {
                 $markers.get(k).setLatLng([v.lat, v.lng]);
             }
+        });
+     });
+     locationsCacheUnsubscriber = locations.subscribe((pos) => {
+        pos.forEach((v,k) => {
+          let locs_json: Object;
+          let locs = localStorage.getItem("locations");
+          if (locs) {
+            locs_json = JSON.parse(locs);
+          } else {
+            locs_json = new Object();
+          }
+          locs_json[k] = {
+            lat: v.lat,
+            lng: v.lng,
+            acc: v.acc,
+            timestamp: v.timestamp,
+          }
+          localStorage.setItem("locations", JSON.stringify(locs_json));
         });
      });
  });
@@ -82,7 +107,8 @@
      }
    mylocationXMPPUnsubscriber;
    mylocationMapUnsubscriber;
-   locationUnsubscriber;
+   locationsMarkerUnsubscriber;
+   locationsCacheUnsubscriber;
  });
 
 </script>
