@@ -29,7 +29,8 @@
 
  let map: LFMap;
  let coordWatchID: number;
-  let locationUnsubscriber: Unsubscriber;
+  let locationsCacheUnsubscriber: Unsubscriber;
+  let locationsMarkerUnsubscriber: Unsubscriber;
   let mylocationMapUnsubscriber: Unsubscriber;
   let mylocationXMPPUnsubscriber: Unsubscriber;
  //let geolocationErr: GeolocationPositionError;
@@ -62,7 +63,7 @@
       if (pos.lat !== undefined || pos.lng !== undefined) map.flyTo([pos.lat, pos.lng]);
     });
 
-     locationUnsubscriber = locations.subscribe((pos) => {
+     locationsMarkerUnsubscriber = locations.subscribe((pos) => {
         pos.forEach((v,k) => {
             if ($markers.get(k) == undefined) {
                 let marker = L.marker([v.lat, v.lng])
@@ -74,6 +75,24 @@
             }
         });
      });
+     locationsCacheUnsubscriber = locations.subscribe((pos) => {
+        pos.forEach((v,k) => {
+          let locs_json: Object;
+          let locs = localStorage.getItem("locations");
+          if (locs) {
+            locs_json = JSON.parse(locs);
+          } else {
+            locs_json = new Object();
+          }
+          locs_json[k] = {
+            lat: v.lat,
+            lng: v.lng,
+            acc: v.acc,
+            timestamp: v.timestamp,
+          }
+          localStorage.setItem("locations", JSON.stringify(locs_json));
+        });
+     });
  });
 
  onDestroy(() => {
@@ -82,7 +101,8 @@
      }
    mylocationXMPPUnsubscriber;
    mylocationMapUnsubscriber;
-   locationUnsubscriber;
+   locationsMarkerUnsubscriber;
+   locationsCacheUnsubscriber;
  });
 
 </script>
