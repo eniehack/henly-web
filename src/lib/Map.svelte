@@ -43,20 +43,23 @@
 
      if ("geolocation" in navigator) {
          navigator.geolocation.getCurrentPosition((pos) => {
-             mylocation.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, datetime()));
+           if (pos.coords.latitude !== undefined &&
+               pos.coords.longitude !== undefined &&
+               pos.coords.accuracy !== undefined) mylocation.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, datetime()));
          }, (err) => {
              console.log(err.message);
          });
 
          coordWatchID = navigator.geolocation.watchPosition((pos) => {
-            mylocation.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, datetime()));
+           if (pos.coords.latitude !== undefined &&
+               pos.coords.longitude !== undefined &&
+               pos.coords.accuracy !== undefined) mylocation.set(new Location(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, datetime()));
          });
      }
 
     mylocationXMPPUnsubscriber = mylocation.subscribe((pos) => {
-      if (pos.lat === undefined || pos.lng === undefined) return;
+      if (pos.lat !== undefined || pos.lng !== undefined) conn.send(pos.toEventStanza($myJID, uuidv4()));
       //console.debug(pos)
-      conn.send(pos.toEventStanza($myJID, uuidv4()));
     })
 
     mylocationMapUnsubscriber = mylocation.subscribe((pos) => {
@@ -65,7 +68,10 @@
 
      locationsMarkerUnsubscriber = locations.subscribe((pos) => {
         pos.forEach((v,k) => {
-            if ($markers.get(k) == undefined) {
+            if (v.lat === undefined &&
+               v.lng === undefined) return;
+
+            if ($markers.get(k) === undefined) {
                 let marker = L.marker([v.lat, v.lng])
                               .bindPopup(k)
                               .addTo(map);
