@@ -1,19 +1,19 @@
-import { isGeolocStanza, Location } from "../src/lib/xmpp/xep-0080";
+import { findGeolocStanza, Location } from "../src/lib/xmpp/xep-0080";
 import { expect, test } from "vitest";
 import { xml } from "@xmpp/client";
 import { jid } from "@xmpp/jid";
 
 test("xep-0080#isGeolocStanza/1", () => {
+    let geoloc = xml("geoloc", "http://jabber.org/protocol/geoloc",
+                                     xml("accuracy", {}, "20"),
+                                     xml("lat", {}, "45.44"),
+                                     xml("lon", {}, "12.33"));
     let stanza = xml("message", {from: "portia@merchantofvenice.lit", to: "bassanio@merchantofvenice.lit"},
                      xml("event", "http://jabber.org/protocol/pubsub#event",
                          xml("items", {node: "http://jabber.org/protocol/geoloc"},
-                             xml("item", {id: "test"},
-                                 xml("geoloc", "http://jabber.org/protocol/geoloc",
-                                     xml("accuracy", {}, "20"),
-                                     xml("lat", {}, "45.44"),
-                                     xml("lon", {}, "12.33"))))));
+                             xml("item", {id: "test"}, geoloc))));
 
-    expect(isGeolocStanza(stanza)).toBe(true);
+    expect(findGeolocStanza(stanza)).toBe(geoloc);
 });
 
 test("xep-0080#isGeolocStanza/2", () => {
@@ -25,7 +25,7 @@ test("xep-0080#isGeolocStanza/2", () => {
                                      xml("lat", {}, "45.44"),
                                      xml("lon", {}, "12.33")))));
 
-    expect(isGeolocStanza(stanza)).toBe(false);
+    expect(findGeolocStanza(stanza)).toBe(undefined);
 });
 
 test("xep-0080/Location#toEventStanza/1", () => {
