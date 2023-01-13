@@ -28,14 +28,14 @@
 
  const { getConn } = getContext(key);
  const conn: Client = getConn();
-
- let map: LFMap;
- let coordWatchID: number;
-  let locationsCacheUnsubscriber: Unsubscriber;
-  let locationsMarkerUnsubscriber: Unsubscriber;
-  let mylocationMapUnsubscriber: Unsubscriber;
-  let mylocationXMPPUnsubscriber: Unsubscriber;
+    let map: LFMap;
+    let coordWatchID: number;
+    let locationsCacheUnsubscriber: Unsubscriber;
+    let locationsMarkerUnsubscriber: Unsubscriber;
+    let mylocationMapUnsubscriber: Unsubscriber;
+    let mylocationXMPPUnsubscriber: Unsubscriber;
  //let geolocationErr: GeolocationPositionError;
+    
  onMount(() => {
     if (browser) {
         map = L.map("map").setView([0, 0], 13);
@@ -60,10 +60,15 @@
             });
         }
 
-        mylocationXMPPUnsubscriber = mylocation.subscribe((pos) => {
+        mylocationXMPPUnsubscriber = mylocation.subscribe(async (pos) => {
             if (pos.lat === undefined || pos.lng === undefined) return;
             if (typeof $myJID === "undefined") return;
-            conn.send(pos.toEventStanza($myJID, uuidv4()));
+
+            let stanza = pos.toEventStanza($myJID, uuidv4());
+            let res = await conn.iqCaller.set(stanza);
+            console.debug("XMPP subscriber");
+            console.debug(res);
+            //conn.send(pos.toEventStanza($myJID, uuidv4()));
           //console.debug(pos)
         })
 

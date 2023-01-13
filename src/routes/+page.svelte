@@ -14,11 +14,13 @@
     <Map />
 {/if}
 </main>
+
 <script lang="ts">
     import Map from "$lib/Map.svelte";
     import Header from "$lib/Header.svelte";
     import { client, xml, type Client } from "@xmpp/client";
     import { jid } from "@xmpp/jid";
+    import type { Element } from "@xmpp/xml";
     import debug from "@xmpp/debug";
     import { Entity } from "$lib/entity";
     import { ServiceIdentity } from "$lib/ServiceIdentity";
@@ -26,6 +28,10 @@
     import { findGeolocStanza, Location } from "$lib/xmpp/xep-0080";
     import { generateResourceRandomPart } from "$lib/util";
     import { HostMeta } from "$lib/xmpp/xep-0156";
+    import { v4 as uuidv4 } from "uuid";
+	import { onDestroy } from "svelte";
+    import type { Unsubscriber } from "svelte/store";
+
     let user_id: string;
     let password: string;
     let conn: Client;
@@ -79,19 +85,17 @@
                     $myJID.domain
                 );
             }, 1000 * 60);
+            conn.iqCallee.get("http://jabber.org/protocol/disco#info", "query", (ctx) => {
+                if (ctx.from === null || ctx.to === null) return;
+                let info = entity.getQuery(ctx.from, ctx.to, ctx.id, ctx.stanza.attrs.node);
+                //console.debug(info);
+                return info;
+            });
             $signin_done = true;
         });
         conn.on("stanza", async (stanza) => {
-            let disco_info: Element | undefined
             let geoloc: Element | undefined
-            if (stanza.is("iq") &&
-                stanza.attrs.type == "get" &&
-                typeof (disco_info = stanza.getChildByAttr("xmlns", "http://jabber.org/protocol/disco#info")) !== "undefined") {
-                    let info = entity.getQuery(jid(stanza.attrs.from), jid(stanza.attrs.to), stanza.attrs.id, disco_info.attrs.node);
-                    console.debug(info);
-                    console.debug(conn.iqCaller.entity);
-                    conn.send(info);
-            } else if (typeof (geoloc = findGeolocStanza(stanza)) !== "undefined") {
+            if (typeof (geoloc = findGeolocStanza(stanza)) !== "undefined") {
                 let loc = new Location();
 
                 let lat = geoloc.getChild("lat")
@@ -124,13 +128,4 @@
         });
         conn.start().catch(console.error);
     }
-
 </script>
-
-<Header />
-<main>
-    <Signin />
-</main>
-
-<style>
-</style>
