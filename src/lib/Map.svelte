@@ -18,10 +18,10 @@
  import type { Map as LFMap } from "leaflet";
  import { onMount, onDestroy, getContext } from "svelte";
  import type { Unsubscriber } from "svelte/store";
- import { myJID, mylocation, locations, markers, key } from "./store";
+ import { myJID, mylocation, locations, markers, key } from "$lib/store";
  import type { Client } from "@xmpp/client";
  import { datetime } from "@xmpp/time";
- import { Location } from "./xmpp/xep-0080";
+ import { Location } from "$lib/xmpp/xep-0080";
  import { v4 as uuidv4 } from "uuid";
 
  const { getConn } = getContext(key);
@@ -58,26 +58,29 @@
      }
 
     mylocationXMPPUnsubscriber = mylocation.subscribe((pos) => {
-      if (pos.lat !== undefined || pos.lng !== undefined) conn.send(pos.toEventStanza($myJID, uuidv4()));
+        if (pos.lat === undefined || pos.lng === undefined) return;
+        if (typeof $myJID === "undefined") return;
+        conn.send(pos.toEventStanza($myJID, uuidv4()));
       //console.debug(pos)
     })
 
     mylocationMapUnsubscriber = mylocation.subscribe((pos) => {
-      if (pos.lat !== undefined || pos.lng !== undefined) map.flyTo([pos.lat, pos.lng]);
+        if (pos.lat === undefined || pos.lng === undefined) return;
+        map.flyTo([pos.lat, pos.lng]);
     });
 
      locationsMarkerUnsubscriber = locations.subscribe((pos) => {
         pos.forEach((v,k) => {
-            if (v.lat === undefined &&
-               v.lng === undefined) return;
+            if (typeof v.lat === "undefined" || typeof v.lng === "undefined") return;
 
-            if ($markers.get(k) === undefined) {
-                let marker = L.marker([v.lat, v.lng])
+            let marker = $markers.get(k);
+            if (typeof marker === "undefined") {
+                let new_marker = L.marker([v.lat, v.lng])
                               .bindPopup(k)
                               .addTo(map);
-                $markers.set(k, marker);
+                $markers.set(k, new_marker);
             } else {
-                $markers.get(k).setLatLng([v.lat, v.lng]);
+                marker.setLatLng([v.lat, v.lng]);
             }
         });
      });
@@ -85,10 +88,10 @@
         pos.forEach((v,k) => {
           let locs_json: Object;
           let locs = localStorage.getItem("locations");
-          if (locs) {
+          if (locs !== null) {
             locs_json = JSON.parse(locs);
           } else {
-            locs_json = new Object();
+            locs_json = {};
           }
           locs_json[k] = {
             lat: v.lat,

@@ -1,31 +1,30 @@
-{#if !signin_done}
-    <div>
-        <label for="jid">JID: </label>
-        <input type="text" bind:value={user_id} placeholder="JID" autocomplete="username" required />
-    </div>
-    <div>
-        <label for="password">Password: </label>
-        <input type="password" bind:value={password} placeholder="password" autocomplete="current-password" required />
-    </div>
-    <button id="signin" on:click={signin}>sign in</button>
+{#if ! $signin_done}
+<div>
+    <label for="jid">JID: </label>
+    <input type="text" bind:value={user_id} placeholder="JID" autocomplete="username" required />
+</div>
+<div>
+    <label for="password">Password: </label>
+    <input type="password" bind:value={password} placeholder="password" autocomplete="current-password" required />
+</div>
+<button id="signin" on:click={signin}>sign in</button>
 {:else}
     <Map />
 {/if}
 
 <script lang="ts">
- import Map from "./Map.svelte";
+ import Map from "$lib/Map.svelte";
  import { client, xml, type Client } from "@xmpp/client";
  import { jid } from "@xmpp/jid";
  import debug from "@xmpp/debug";
- import { Entity } from "./entity";
- import { ServiceIdentity } from "./ServiceIdentity";
- import { myJID, locations, key } from "./store";
- import { isGeolocStanza, Location } from "./xmpp/xep-0080";
+ import { Entity } from "$lib/entity";
+ import { ServiceIdentity } from "$lib/ServiceIdentity";
+ import { myJID, locations, key, signin_done } from "$lib/store";
+ import { findGeolocStanza, Location } from "$lib/xmpp/xep-0080";
  import { setContext } from "svelte";
- import { generateResourceRandomPart } from "./util";
+ import { generateResourceRandomPart } from "$lib/util";
   import { HostMeta } from "./xmpp/xep-0156";
 
- let signin_done = false;
  let user_id: string;
  let password: string;
  let conn: Client;
@@ -88,45 +87,53 @@
          myJID.set(address);
 
          ping_interval = setInterval(() => {
+            if (typeof $myJID === "undefined") return;
              conn.iqCaller.get(
                  xml("ping", "urn:xmpp:ping"),
                  $myJID.domain
              );
          }, 1000 * 60);
-         signin_done = true;
+         $signin_done = true;
      });
 
      conn.on("stanza", async (stanza) => {
-         if (stanza.is("iq") && stanza.attrs.type == "get" && stanza.getChildByAttr("xmlns", "http://jabber.org/protocol/disco#info") !== undefined) {
-             let query_elem = stanza.getChildByAttr("xmlns", "http://jabber.org/protocol/disco#info");
-             let info = entity.getQuery(jid(stanza.attrs.from), jid(stanza.attrs.to), stanza.attrs.id, query_elem.attrs.node);
-             console.debug(info);
-             conn.send(info);
-         } else if (isGeolocStanza(stanza)) {
-             let elem = stanza.getChild("event")
-                              .getChildByAttr("node", "http://jabber.org/protocol/geoloc")
-                              .getChild("item")
-                              .getChildByAttr("xmlns", "http://jabber.org/protocol/geoloc");
-             let loc = new Location();
-             if (elem.getChild("lat") !== undefined) {
-                loc.lat = Number(elem.getChild("lat").text());
-             }
-             if (elem.getChild("lon") !== undefined) {
-                loc.lng = Number(elem.getChild("lon").text());
-             }
-             if (elem.getChild("accuracy") !== undefined) {
-                loc.acc = Number(elem.getChild("accuracy").text());
-             }
-             if (elem.getChild("timestamp") !== undefined) {
-                loc.timestamp = elem.getChild("timestamp").text();
-             }
-             locations.update((m) => {
-                //console.log(m)
-                m.set(stanza.attrs.from, loc);
-                return m;
-             });
-         }
-         console.debug(stanza);
+        if ( ! stanza.is("iq")) return;
+        if (stanza.attrs.type == "get") return;
+
+        let query_elem = stanza.getChildByAttr("xmlns", "http://jabber.org/protocol/disco#info");
+        if (typeof query_elem !== "undefined") {
+            let info = entity.getQuery(jid(stanza.attrs.from), jid(stanza.attrs.to), stanza.attrs.id, query_elem.attrs.node);
+            console.debug(info);
+            conn.send(info);
+        }
+
+        let elem = findGeolocStanza(stanza)
+        if (typeof elem === "undefined") {
+            return;
+        }
+        let loc = new Location();
+        let lat = elem.getChild("lat")
+        if (typeof lat !== "undefined") {
+           loc.lat = Number(lat.text());
+        }
+        let lon = elem.getChild("accuracy");
+        if (typeof lon !== "undefined") {
+           loc.lng = Number(lon.text());
+        }
+        let acc = elem.getChild("accuracy");
+        if (typeof acc !== "undefined") {
+            loc.acc = Number(acc.text());
+        }
+        let ts = elem.getChild("timestamp");
+        if (typeof ts !== "undefined") {
+           loc.timestamp = ts.text();
+        }
+        locations.update((m) => {
+           //console.log(m)
+           m.set(stanza.attrs.from, loc);
+           return m;
+        });
+        console.debug(stanza);
      });
 
      conn.on("offline", () => {
