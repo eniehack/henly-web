@@ -49,5 +49,10 @@
 		"vitest": "^1.0.0",
 		"xml-js": "^1.6.11"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"ajv": "^8.17.1",
+		"maplibre-gl": "^4.6.0",
+		"vite-plugin-node-polyfills": "^0.22.0"
+	}
 }
