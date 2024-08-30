@@ -13,7 +13,7 @@
 	import { v4 as uuidv4 } from 'uuid';
 	import { browser } from '$app/environment';
 
-	export let conn: Writable<Client>;
+	export let conn: Writable<Client | undefined>;
 	let map: maplibre.Map;
 	let coordWatchID: number;
 	let locationsCacheUnsubscriber: Unsubscriber;
@@ -89,6 +89,7 @@
 			mylocationXMPPUnsubscriber = mylocation.subscribe(async (pos) => {
 				if (pos.lat === undefined || pos.lng === undefined) return;
 				if (typeof $myJID === 'undefined') return;
+				if (typeof $conn === "undefined") return;
 
 				let stanza = pos.toEventStanza($myJID, uuidv4());
 				let res = await $conn.iqCaller.set(stanza);

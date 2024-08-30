@@ -2,6 +2,7 @@ import { writable, type Writable } from 'svelte/store';
 import type { JID } from '@xmpp/jid';
 import type { Marker } from 'maplibre-gl';
 import { Location } from './xmpp/xep-0080';
+import type { Client } from '@xmpp/client';
 
 export const myJID: Writable<JID | undefined> = writable(undefined);
 
@@ -17,4 +18,4 @@ export const signin_done: Writable<boolean> = writable(false);
 
 export const key = Symbol();
 
-export const connection = writable();
+export const connection: Writable<Client | undefined> = writable(undefined);

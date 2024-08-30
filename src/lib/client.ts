@@ -20,7 +20,7 @@ const entity = new Entity(id, [
 	'http://jabber.org/protocol/geoloc'
 ]);
 
-export const initializeClient = async (addr: JID, password: string): Client => {
+export const initializeClient = async (addr: JID, password: string): Promise<Client> => {
 	let hostmeta = await fetch(`https://${addr.domain}/.well-known/host-meta`, {
 		method: 'GET',
 		redirect: 'follow'

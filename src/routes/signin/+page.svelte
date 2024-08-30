@@ -9,15 +9,14 @@
 
 	export let user_id: string;
 	export let password: string;
-	const signin = () => {
+	const signin = async () => {
 		let addr = jid(user_id);
 		addr.setResource('henly-web.' + generateResourceRandomPart());
 		const item = serialize({
-			jid: { short: addr.local, full: addr.toString() },
+			jid: addr.toString(),
 			password,
-			host: addr.domain
 		});
-		connection.set(initializeClient(addr, password));
+		connection.set(await initializeClient(addr, password));
 		localStorage.setItem(HENLYWEB_USER_STORAGE_ID, item);
 		goto('/');
 	};
