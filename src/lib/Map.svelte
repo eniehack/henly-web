@@ -112,7 +112,10 @@
 					let marker = $markers.get(k);
 					if (typeof marker === 'undefined') {
 						let popup = new maplibre.Popup().setHTML(k);
-						let new_marker = new maplibre.Marker().setLngLat([v.lng, v.lat]).setPopup(popup).addTo(map);
+						let new_marker = new maplibre.Marker()
+							.setLngLat([v.lng, v.lat])
+							.setPopup(popup)
+							.addTo(map);
 						$markers.set(k, new_marker);
 					} else {
 						marker.setLngLat([v.lng, v.lat]);

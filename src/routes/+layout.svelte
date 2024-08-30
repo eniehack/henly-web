@@ -1,10 +1,10 @@
 <script lang="ts">
-    import Header from "$lib/Header.svelte";
+	import Header from '$lib/Header.svelte';
 </script>
 
 <Header />
 <main>
-    <slot />
+	<slot />
 </main>
 
 <svelte:head>
@@ -12,8 +12,8 @@
 		body {
 			margin: 0;
 			padding: 0;
-			font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo,
-				sans-serif;
+			font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans',
+				Meiryo, sans-serif;
 		}
 		html,
 		body {

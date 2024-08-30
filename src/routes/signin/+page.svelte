@@ -25,13 +25,7 @@
 
 <div>
 	<label for="jid">JID: </label>
-	<input
-		type="text"
-		bind:value={user_id}
-		placeholder="JID"
-		autocomplete="username"
-		required
-	/>
+	<input type="text" bind:value={user_id} placeholder="JID" autocomplete="username" required />
 </div>
 <div>
 	<label for="password">Password: </label>
