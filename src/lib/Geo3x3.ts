@@ -4,11 +4,11 @@
 class Geo3x3 {
 	static encode(lat: number, lng: number, level: number): string {
 		if (level < 1) {
-			return "";
+			return '';
 		}
-		let res = "E";
+		let res = 'E';
 		if (lng < 0) {
-			res = "W";
+			res = 'W';
 			lng += 180;
 		}
 		lat += 90; // 180:the North Pole, 0:the South Pole
@@ -23,22 +23,22 @@ class Geo3x3 {
 		}
 		return res;
 	}
-	static decode(code: string): { lat: number, lng: number, level: number, unit: number } {
+	static decode(code: string): { lat: number; lng: number; level: number; unit: number } {
 		const ncode = parseInt(code);
 		if (ncode.toString() == code) {
 			if (ncode < 0) {
-				code = "W" + -ncode;
+				code = 'W' + -ncode;
 			} else {
-				code = "E" + ncode;
+				code = 'E' + ncode;
 			}
 		}
-		const flg = code.charAt(0) == "W";
+		const flg = code.charAt(0) == 'W';
 		let unit = 180;
 		let lat = 0;
 		let lng = 0;
 		let level = 1;
 		for (let i = 1; i < code.length; i++) {
-			let n = "0123456789".indexOf(code.charAt(i));
+			let n = '0123456789'.indexOf(code.charAt(i));
 			if (n == 0) {
 				break;
 			}
@@ -56,19 +56,27 @@ class Geo3x3 {
 		}
 		return { lat, lng, level, unit };
 	}
-	static getCoords(code: string): [ { lat: number, lng: number }, { lat: number, lng: number }, { lat: number, lng: number }, { lat: number, lng: number }, ] {
+	static getCoords(
+		code: string
+	): [
+		{ lat: number; lng: number },
+		{ lat: number; lng: number },
+		{ lat: number; lng: number },
+		{ lat: number; lng: number }
+	] {
 		const pos = this.decode(code);
 		const x = pos.lng;
 		const y = pos.lat;
 		const u2 = pos.unit / 2;
 		return [
-			{ "lat" : y - u2, "lng" : x - u2 },
-			{ "lat" : y - u2, "lng" : x + u2 },
-			{ "lat" : y + u2, "lng" : x + u2 },
-			{ "lat" : y + u2, "lng" : x - u2 }
+			{ lat: y - u2, lng: x - u2 },
+			{ lat: y - u2, lng: x + u2 },
+			{ lat: y + u2, lng: x + u2 },
+			{ lat: y + u2, lng: x - u2 }
 		];
 	}
-	static getMeshSize(code: string): object { // m
+	static getMeshSize(code: string): object {
+		// m
 		const lls = this.getCoords(code);
 		const xy = new Array(4);
 		for (let i = 0; i < xy.length; i++) {
@@ -79,16 +87,17 @@ class Geo3x3 {
 		return { x, y };
 	}
 	static R2_EARTH = 12756274; // m from https://ja.wikipedia.org/wiki/%E5%9C%B0%E7%90%83
-	static RPI_EARTH = Geo3x3.R2_EARTH * Math.PI / 2 / 180;
-	static ll2xy(lat: number, lng: number): { x: number, y: number } {
+	static RPI_EARTH = (Geo3x3.R2_EARTH * Math.PI) / 2 / 180;
+	static ll2xy(lat: number, lng: number): { x: number; y: number } {
 		const x = this.RPI_EARTH * lng;
-		const y = this.RPI_EARTH * Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180);
+		const y =
+			(this.RPI_EARTH * Math.log(Math.tan(((90 + lat) * Math.PI) / 360))) / (Math.PI / 180);
 		return { x, y };
 	}
-	static xy2ll(x: number, y: number): { lat: number, lng: number } {
+	static xy2ll(x: number, y: number): { lat: number; lng: number } {
 		const lng = x / this.RPI_EARTH;
 		let lat = y / this.RPI_EARTH;
-		lat = 180 / Math.PI * (2 * Math.atan(Math.exp(lat * Math.PI / 180)) - Math.PI / 2);
+		lat = (180 / Math.PI) * (2 * Math.atan(Math.exp((lat * Math.PI) / 180)) - Math.PI / 2);
 		return { lat, lng };
 	}
 }

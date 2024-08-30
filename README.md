@@ -7,8 +7,10 @@ a Zenly alternative building by XMPP's Personal Eventing Protocol.
 ## How to use
 
 1. create XMPP account
-  * If you use this program, your server maybe need to support your server Personal Eventing Protocol, Entity Capabilities, and etc.
-  * please check your server using tool
+
+-   If you use this program, your server maybe need to support your server Personal Eventing Protocol, Entity Capabilities, and etc.
+-   please check your server using tool
+
 2. access https://henly-web.vercel.app , sign in with your account.
 3. allow to share location to the service.
 
@@ -34,4 +36,4 @@ You may choose two licenses above.
 
 ## Contributers
 
-- [eniehack](https://github.com/eniehack) - creator and maintainer
+-   [eniehack](https://github.com/eniehack) - creator and maintainer
